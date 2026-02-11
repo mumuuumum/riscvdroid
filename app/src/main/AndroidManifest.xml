@@ -104,9 +104,9 @@
 
         <activity
             android:name=".views.repos.AddRepoActivity"
-            android:exported="true"                     <!-- 必须为 true，因为有外部 Intent -->
-            android:launchMode="singleTop"              <!-- 改成 singleTop 更适合处理多次 Intent -->
-            android:windowSoftInputMode="adjustResize"  <!-- 软键盘弹出时调整布局 -->
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".views.main.MainActivity">
 
             <!-- 1. fdroid.link 短链接（推荐方式） -->
