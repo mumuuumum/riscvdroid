@@ -1,7 +1,7 @@
 [versions]
 compileSdk = "36"
 kotlin = "2.2.21"
-androidGradlePlugin = "8.11.1" # 8.12.0 pulls in aapt2 which has issue on buildserver
+# androidGradlePlugin = "8.11.1" # 8.12.0 pulls in aapt2 which has issue on buildserver
 androidKspPlugin = "2.2.21-2.0.4" # first version needs to match kotlin version
 dokka = "2.1.0"
 mavenPublish = "0.34.0"
