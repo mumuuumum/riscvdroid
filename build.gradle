@@ -1,7 +1,11 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven { url 'https://maven.google.com/' }
+        google()
+        maven { url '/opt/android-plugin' }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.4.0-dev'
     }
 }
 plugins {
@@ -19,7 +23,11 @@ plugins {
 allprojects {
     repositories {
         mavenCentral()
-        maven { url 'https://maven.google.com/' }
+        google()
+        maven { url '/opt/android-plugin' }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.4.0-dev'
     }
 }
 subprojects {
