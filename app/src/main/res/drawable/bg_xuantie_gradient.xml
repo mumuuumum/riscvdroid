@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Horizontal gradient from XuanTie Purple Dark to Light -->
+    <gradient
+        android:angle="0"
+        android:startColor="@color/xuantie_purple_dark"
+        android:endColor="@color/xuantie_purple_light"
+        android:type="linear" />
+
+</shape>

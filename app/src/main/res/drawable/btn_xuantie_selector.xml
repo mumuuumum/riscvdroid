@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 按下状态：深一些的渐变 -->
+    <item android:state_pressed="true">
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+            android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <gradient
+                android:angle="45"
+                android:startColor="@color/brand_purple_dark"
+                android:endColor="@color/brand_cyan"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- 默认状态：正常渐变 -->
+    <item android:drawable="@drawable/btn_xuantie_gradient" />
+</selector>

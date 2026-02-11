@@ -61,8 +61,20 @@
     </style>
 
     <style name="ThemeOverlay.App.BottomNavigationView" parent="">
-        <item name="colorSecondaryContainer">?attr/colorPrimaryContainer</item>
-        <item name="colorOnSecondaryContainer">?attr/colorOnPrimaryContainer</item>
+        <!-- Surface color (white background) -->
+        <item name="colorSurface">@color/xuantie_surface</item>
+
+        <!-- Selected item colors -->
+        <item name="colorPrimary">@color/xuantie_purple_dark</item>
+        <item name="colorOnPrimary">@color/xuantie_surface</item>
+
+        <!-- Active indicator and text color -->
+        <item name="colorSecondaryContainer">@color/xuantie_purple_dark</item>
+        <item name="colorOnSecondaryContainer">@color/xuantie_surface</item>
+
+        <!-- Unselected item colors -->
+        <item name="colorOnSurface">#757575</item>
+        <item name="colorSurfaceContainerHighest">@color/xuantie_surface</item>
     </style>
 
     <style name="Widget.App.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
@@ -70,8 +82,9 @@
     </style>
 
     <style name="ThemeOverlay.App.FloatingActionButton" parent="">
-        <item name="colorContainer">?attr/colorSecondaryContainer</item>
-        <item name="colorOnContainer">?attr/colorOnSecondaryContainer</item>
+        <!-- FAB background using XuanTie Tech Cyan -->
+        <item name="colorContainer">@color/xuantie_tech_cyan</item>
+        <item name="colorOnContainer">@color/xuantie_surface</item>
     </style>
 
     <!-- use this style for a text view that is a caption to a paragraph of text -->

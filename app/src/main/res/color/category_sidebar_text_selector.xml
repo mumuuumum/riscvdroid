@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 选中状态：主题色（蓝色） -->
+    <item android:state_selected="true" android:color="@color/colorAccent" />
+
+    <!-- 默认状态：深灰色 -->
+    <item android:color="#666666" />
+</selector>

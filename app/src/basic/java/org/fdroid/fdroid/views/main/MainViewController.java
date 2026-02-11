@@ -75,7 +75,7 @@ class MainViewController extends RecyclerView.ViewHolder {
     }
 
     /**
-     * @see CategoriesViewBinder
+     * @see CategoriesViewBinder - 现在使用双栏布局
      */
     void bindCategoriesView() {
         new CategoriesViewBinder(activity, frame);

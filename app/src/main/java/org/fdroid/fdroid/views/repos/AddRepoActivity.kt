@@ -36,63 +36,81 @@ class AddRepoActivity : AppCompatActivity() {
     // Use a getter here, otherwise this tries to access Context too early causing NPE
     private val repoManager: RepoManager get() = FDroidApp.getRepoManager(this)
 
+    private lateinit var etUrl: EditText
+    private lateinit var btnFetch: Button
+    private lateinit var progress: ProgressBar
+    private lateinit var tvStatus: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_add_repo)
+
+
+        // 找到视图
+        etUrl = findViewById(R.id.et_repo_url)
+        btnFetch = findViewById(R.id.btn_fetch)
+        progress = findViewById(R.id.progress)
+        tvStatus = findViewById(R.id.tv_status)
+
+// 监听添加状态（保持原有逻辑）
         lifecycleScope.launch {
-            repeatOnLifecycle(STARTED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 repoManager.addRepoState.collect { state ->
-                    if (state is Added) {
-                        // update newly added repo
-                        RepoUpdateWorker.updateNow(applicationContext, state.repo.repoId)
-                        // show repo list and close this activity
-                        val i = Intent(this@AddRepoActivity, AppListActivity::class.java).apply {
-                            putExtra(EXTRA_REPO_ID, state.repo.repoId)
+                    when (state) {
+                        is Loading -> {
+                            progress.visibility = View.VISIBLE
+                            tvStatus.text = "正在获取仓库信息..."
+                            tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
                         }
-                        startActivity(i)
-                        finish()
+                        is Added -> {
+                            progress.visibility = View.GONE
+                            // update newly added repo
+                            RepoUpdateWorker.updateNow(applicationContext, state.repo.repoId)
+                            // 跳转并关闭
+                            val i = Intent(this@AddRepoActivity, AppListActivity::class.java).apply {
+                                putExtra(EXTRA_REPO_ID, state.repo.repoId)
+                            }
+                            startActivity(i)
+                            finish()
+                        }
+                        is AddRepoError -> {
+                            progress.visibility = View.GONE
+                            tvStatus.text = "添加失败：${state.error.message ?: "未知错误"}"
+                            tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, R.color.error_red))  // 假设你有这个颜色，或用 #D32F2F
+                        }
+                        else -> {
+                            progress.visibility = View.GONE
+                            tvStatus.text = ""
+                        }
                     }
                 }
             }
         }
-        setContent {
-            FDroidContent {
-                val state = repoManager.addRepoState.collectAsState().value
-                BackHandler(state is AddRepoError) {
-                    // reset state when going back on error screen
-                    repoManager.abortAddingRepository()
-                }
-                AddRepoIntroScreen(
-                    state = state,
-                    onFetchRepo = this::onFetchRepo,
-                    onAddRepo = { repoManager.addFetchedRepository() },
-                    onBackClicked = { onBackPressedDispatcher.onBackPressed() },
-                )
+        // Fetch 按钮点击
+        btnFetch.setOnClickListener {
+            val url = etUrl.text.toString().trim()
+            if (url.isNotEmpty()) {
+                onFetchRepo(url)
+            } else {
+                Toast.makeText(this, "请输入仓库地址", Toast.LENGTH_SHORT).show()
             }
         }
+
+        // 处理外部 Intent（保持不变）
         addOnNewIntentListener { intent ->
             when (intent.action) {
-                Intent.ACTION_VIEW -> {
-                    intent.dataString?.let { uri ->
-                        onFetchRepo(uri)
-                    }
-                }
-
-                Intent.ACTION_SEND -> {
-                    intent.getStringExtra(EXTRA_TEXT)?.let {
-                        fetchIfRepoUri(it)
-                    }
-                }
-
+                Intent.ACTION_VIEW -> intent.dataString?.let { onFetchRepo(it) }
+                Intent.ACTION_SEND -> intent.getStringExtra(EXTRA_TEXT)?.let { fetchIfRepoUri(it) }
                 else -> {}
             }
         }
+
         intent?.let {
             onNewIntent(it)
-            // avoid this intent getting re-processed
             it.setData(null)
             it.replaceExtras(Bundle())
         }
+
     }
 
     override fun onResume() {

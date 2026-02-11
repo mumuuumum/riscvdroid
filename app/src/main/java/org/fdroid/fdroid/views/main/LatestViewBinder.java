@@ -3,6 +3,7 @@ package org.fdroid.fdroid.views.main;
 import android.content.Intent;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -47,7 +48,10 @@ class LatestViewBinder implements Observer<List<AppOverviewItem>>, ChangeListene
     private final TextView emptyState;
     private final RecyclerView appList;
     private final FDroidDatabase db;
-
+    private final ImageButton heroSearchButton;
+    private final TextView heroSearchInput;
+    private final FloatingActionButton searchFab;
+    
     LatestViewBinder(final AppCompatActivity activity, FrameLayout parent) {
         this.activity = activity;
         activity.getLifecycle().addObserver(new DefaultLifecycleObserver() {
@@ -89,8 +93,28 @@ class LatestViewBinder implements Observer<List<AppOverviewItem>>, ChangeListene
             Utils.runOffUiThread(() -> FDroidApp.getRepoUpdateManager(activity).updateRepos());
         });
 
-        FloatingActionButton searchFab = latestView.findViewById(R.id.fab_search);
-        searchFab.setOnClickListener(v -> activity.startActivity(new Intent(activity, AppListActivity.class)));
+        // 设置Hero搜索组件点击事件
+        heroSearchInput = latestView.findViewById(R.id.hero_search_input);
+        heroSearchButton = latestView.findViewById(R.id.hero_search_button);
+
+        // 创建搜索Intent
+        Intent searchIntent = new Intent(activity, AppListActivity.class);
+
+        // 搜索输入框点击事件
+        heroSearchInput.setOnClickListener(v -> {
+            activity.startActivity(searchIntent);
+        });
+
+        // 搜索按钮点击事件
+        heroSearchButton.setOnClickListener(v -> {
+            activity.startActivity(searchIntent);
+        });
+
+        // 隐藏FAB搜索按钮
+        searchFab = latestView.findViewById(R.id.fab_search);
+        searchFab.setVisibility(View.GONE);
+
+        // 保留FAB的长按功能用于隐藏应用（如果用户习惯使用）
         searchFab.setOnLongClickListener(view -> {
             if (Preferences.get().hideOnLongPressSearch()) {
                 HidingManager.showHideDialog(activity);
@@ -99,6 +123,8 @@ class LatestViewBinder implements Observer<List<AppOverviewItem>>, ChangeListene
                 return false;
             }
         });
+
+        // Hero Section现在作为滚动内容的一部分，无需特殊处理状态栏insets
     }
 
     @Override

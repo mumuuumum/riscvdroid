@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/xuantie_background">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_to_refresh"
@@ -13,7 +14,12 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@color/xuantie_background">
+
+            <!-- XuanTie Hero Section 作为RecyclerView的第一个item -->
+            <include layout="@layout/xuantie_hero_section"
+                android:id="@+id/hero_section" />
 
             <org.fdroid.fdroid.views.StatusBanner
                 style="@style/StatusBanner"
