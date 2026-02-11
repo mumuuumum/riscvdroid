@@ -182,6 +182,8 @@ dependencies {
     implementation libs.androidx.constraintlayout
     implementation libs.androidx.swiperefreshlayout
     implementation libs.androidx.lifecycle.livedata.ktx
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
     implementation libs.androidx.documentfile
     implementation libs.androidx.localbroadcastmanager
     implementation libs.androidx.work.runtime

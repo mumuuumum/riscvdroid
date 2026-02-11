@@ -27,9 +27,23 @@ import org.fdroid.fdroid.views.apps.AppListActivity.EXTRA_REPO_ID
 import org.fdroid.fdroid.work.RepoUpdateWorker
 import org.fdroid.index.RepoManager
 import org.fdroid.repo.AddRepoError
+import org.fdroid.repo.AddRepoState
 import org.fdroid.repo.Added
+import org.fdroid.repo.Adding
+import org.fdroid.repo.FetchResult
+import org.fdroid.repo.Fetching
+import org.fdroid.repo.None
 import kotlin.text.RegexOption.IGNORE_CASE
 import kotlin.text.RegexOption.MULTILINE
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.lifecycleScope
 
 class AddRepoActivity : AppCompatActivity() {
 
@@ -47,17 +61,17 @@ class AddRepoActivity : AppCompatActivity() {
 
 
         // 找到视图
-        etUrl = findViewById(R.id.et_repo_url)
-        btnFetch = findViewById(R.id.btn_fetch)
-        progress = findViewById(R.id.progress)
-        tvStatus = findViewById(R.id.tv_status)
+        etUrl    = findViewById<EditText>(R.id.et_repo_url)
+        btnFetch = findViewById<Button>(R.id.btn_fetch)
+        progress = findViewById<ProgressBar>(R.id.progress)
+        tvStatus = findViewById<TextView>(R.id.tv_status)
 
 // 监听添加状态（保持原有逻辑）
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 repoManager.addRepoState.collect { state ->
                     when (state) {
-                        is Loading -> {
+                        is Adding -> {
                             progress.visibility = View.VISIBLE
                             tvStatus.text = "正在获取仓库信息..."
                             tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
