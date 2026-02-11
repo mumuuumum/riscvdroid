@@ -26,9 +26,6 @@ allprojects {
         google()
         maven { url '/opt/android-plugin' }
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.0-dev'
-    }
 }
 subprojects {
     apply plugin: "org.jlleitschuh.gradle.ktlint"
