@@ -51,6 +51,7 @@ class AddRepoActivity : AppCompatActivity() {
 
     private lateinit var etUrl: EditText
     private lateinit var btnFetch: Button
+    private lateinit var btnConfirmAdd: Button
     private lateinit var progress: ProgressBar
     private lateinit var tvStatus: TextView
 
@@ -58,14 +59,13 @@ class AddRepoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_repo)
 
+        etUrl = findViewById(R.id.et_repo_url)
+        btnFetch = findViewById(R.id.btn_fetch)
+        btnConfirmAdd = findViewById(R.id.btn_confirm_add)
+        progress = findViewById(R.id.progress)
+        tvStatus = findViewById(R.id.tv_status)
 
-        // 找到视图
-        etUrl    = findViewById<EditText>(R.id.et_repo_url)
-        btnFetch = findViewById<Button>(R.id.btn_fetch)
-        progress = findViewById<ProgressBar>(R.id.progress)
-        tvStatus = findViewById<TextView>(R.id.tv_status)
-
-// 监听状态变化（严格对应 AddRepoIntroScreen 逻辑）
+        // 监听状态变化（严格对应 AddRepoIntroScreen 逻辑）
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 repoManager.addRepoState.collect { state ->
@@ -91,16 +91,12 @@ class AddRepoActivity : AppCompatActivity() {
                                 // 对应 RepoPreviewScreen：显示预览，按钮可见
                                 progress.visibility = View.GONE
                                 btnConfirmAdd.visibility = View.VISIBLE
-                                val repoName = state.receivedRepo.name ?: "未知仓库"
                                 val appCount = state.apps
                                 val url = state.fetchUrl
-                                val fingerprint = state.receivedRepo.fingerprint?.take(16) ?: "无指纹"
                                 tvStatus.text = """
                                     仓库预览就绪：
-                                    名称：$repoName
                                     应用数量：$appCount
                                     地址：$url
-                                    指纹：$fingerprint...
                                     
                                     确认无误后点击下方按钮添加
                                 """.trimIndent()
@@ -129,7 +125,7 @@ class AddRepoActivity : AppCompatActivity() {
                         is AddRepoError -> {
                             progress.visibility = View.GONE
                             btnConfirmAdd.visibility = View.GONE
-                            val errMsg = state.cause?.message ?: state.toString() ?: "未知错误"
+                            val errMsg = state.toString() ?: "未知错误"
                             tvStatus.text = "添加失败：$errMsg\n请检查地址、指纹或网络"
                             tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, R.color.error_red))
                         }
@@ -143,7 +139,8 @@ class AddRepoActivity : AppCompatActivity() {
                 }
             }
         }
-// 获取按钮
+
+        // 获取按钮
         btnFetch.setOnClickListener {
             val url = etUrl.text.toString().trim()
             if (url.isEmpty()) {
@@ -163,30 +160,20 @@ class AddRepoActivity : AppCompatActivity() {
             }
         }
 
-// 外部 Intent 处理
+        // 外部 Intent 处理
         addOnNewIntentListener { intent ->
             when (intent.action) {
                 Intent.ACTION_VIEW -> intent.dataString?.let { onFetchRepo(it) }
                 Intent.ACTION_SEND -> intent.getStringExtra(EXTRA_TEXT)?.let { fetchIfRepoUri(it) }
                 else -> {}
             }
+        }
 
         intent?.let {
             onNewIntent(it)
             it.setData(null)
             it.replaceExtras(Bundle())
         }
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-        FDroidApp.checkStartTor(this, Preferences.get())
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!isChangingConfigurations) repoManager.abortAddingRepository()
     }
 
     private fun onFetchRepo(uriStr: String) {
@@ -203,6 +190,17 @@ class AddRepoActivity : AppCompatActivity() {
             repoManager.fetchRepositoryPreview(uri.toString(), proxy = NetCipher.getProxy())
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        FDroidApp.checkStartTor(this, Preferences.get())
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (!isChangingConfigurations) repoManager.abortAddingRepository()
+    }
+
 
     private fun fetchIfRepoUri(str: String) {
         // try direct https/fdroidrepos URIs first
