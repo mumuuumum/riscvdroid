@@ -91,11 +91,9 @@ class AddRepoActivity : AppCompatActivity() {
                                 // 对应 RepoPreviewScreen：显示预览，按钮可见
                                 progress.visibility = View.GONE
                                 btnConfirmAdd.visibility = View.VISIBLE
-                                val appCount = state.apps
                                 val url = state.fetchUrl
                                 tvStatus.text = """
-                                    仓库预览就绪：
-                                    应用数量：$appCount
+                                    确定添加该仓库？
                                     地址：$url
                                     
                                     确认无误后点击下方按钮添加
