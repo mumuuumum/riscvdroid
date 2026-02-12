@@ -48,5 +48,3 @@ junit-report.xml
 captures/
 
 /fdroid/
-build.gradle
-app/build.gradle

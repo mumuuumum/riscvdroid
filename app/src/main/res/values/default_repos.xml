@@ -2,6 +2,21 @@
 
     <!-- Repositories at the top have a higher priority than those at the bottom -->
     <string-array name="default_repos">
+        <!-- IzzyOnDroid - 放到最前面作为默认仓库 -->
+        <!-- name -->
+        <item>IzzyOnDroid</item>
+        <!-- address -->
+        <item>https://apt.izzysoft.de/fdroid/repo</item>
+        <!-- description -->
+        <item>IzzyOnDroid 第三方仓库，提供更多应用和更频繁的更新。所有应用均来自源代码构建。</item>
+        <!-- version -->
+        <item>13</item>
+        <!-- enabled -->
+        <item>1</item>
+        <!-- push requests -->
+        <item>ignore</item>
+        <!-- pubkey（指纹） -->
+        <item>3BF0D6ABFEAE2F401707B6D966BE743BF0EEE49C2561B9BA39073711F628937A</item>
 
         <!-- name -->
         <item>F-Droid</item>
