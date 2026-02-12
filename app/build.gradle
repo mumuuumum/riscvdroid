@@ -28,7 +28,7 @@ def privilegedExtensionApplicationId = '"org.fdroid.fdroid.privileged"'
 android {
     namespace "org.fdroid.fdroid"
     buildToolsVersion "35.0.0"
-
+    ndkVersion "23.2.0"
     compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
@@ -47,6 +47,11 @@ android {
          */
         testInstrumentationRunnerArguments disableAnalytics: 'true'
         vectorDrawables.useSupportLibrary = true
+        externalNativeBuild {
+            ndk {
+                abiFilters 'riscv64'
+            }
+        }
     }
 
     ext {
