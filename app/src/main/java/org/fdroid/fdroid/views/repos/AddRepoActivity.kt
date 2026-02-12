@@ -115,7 +115,7 @@ class AddRepoActivity : AppCompatActivity() {
 
                         is AddRepoError -> {
                             progress.visibility = View.GONE
-                            val errMsg = state.cause?.message ?: state.toString() ?: "未知错误"
+                            val errMsg = state.toString()
                             tvStatus.text = "添加失败：$errMsg"
                             tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, R.color.error_red))
                         }
