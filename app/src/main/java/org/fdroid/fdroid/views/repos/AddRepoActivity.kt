@@ -11,7 +11,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle.State.STARTED
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -89,8 +88,12 @@ class AddRepoActivity : AppCompatActivity() {
                         }
                         is AddRepoError -> {
                             progress.visibility = View.GONE
-                            tvStatus.text = "添加失败：${state.error.message ?: "未知错误"}"
-                            tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, R.color.error_red))  // 假设你有这个颜色，或用 #D32F2F
+                            val errorMessage = when {
+                                state is Throwable -> state.message
+                                else -> state.toString()  // 最保险，显示类名 + 内容
+                            } ?: "未知错误"
+                            tvStatus.text = "添加失败：$errorMessage"
+                            tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, R.color.error_red))
                         }
                         else -> {
                             progress.visibility = View.GONE
