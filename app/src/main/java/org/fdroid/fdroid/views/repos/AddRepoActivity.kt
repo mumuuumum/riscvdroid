@@ -65,88 +65,111 @@ class AddRepoActivity : AppCompatActivity() {
         progress = findViewById<ProgressBar>(R.id.progress)
         tvStatus = findViewById<TextView>(R.id.tv_status)
 
-// 监听添加状态（保持原有逻辑）
+// 监听状态变化（严格对应 AddRepoIntroScreen 逻辑）
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 repoManager.addRepoState.collect { state ->
-                    Log.d("AddRepoDebug", "State: ${state.javaClass.simpleName} - $state")  // 保持调试日志
+                    Log.d("AddRepoDebug", "State: ${state.javaClass.simpleName} → $state")
+
+                    btnConfirmAdd.visibility = View.GONE  // 默认隐藏按钮
 
                     when (state) {
                         is None -> {
                             progress.visibility = View.GONE
-                            tvStatus.text = "请输入仓库地址并点击获取"
+                            btnFetch.visibility = View.VISIBLE
+                            tvStatus.text = "请输入仓库地址并点击“获取仓库信息”"
                             tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
                         }
 
                         is Fetching -> {
                             progress.visibility = View.VISIBLE
                             if (state.receivedRepo == null) {
-                                // 还在下载/解析索引
-                                tvStatus.text = "正在下载仓库索引..."
+                                // 对应 RepoProgressScreen
+                                tvStatus.text = "正在获取仓库信息...\n已解析 ${state.apps} 个应用"
                                 tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
                             } else {
-                                // 已获取到仓库预览 → 自动添加（核心改动！）
-                                tvStatus.text = "仓库信息已获取，正在自动添加..."
+                                // 对应 RepoPreviewScreen：显示预览，按钮可见
+                                progress.visibility = View.GONE
+                                btnConfirmAdd.visibility = View.VISIBLE
+                                val repoName = state.receivedRepo.name ?: "未知仓库"
+                                val appCount = state.apps
+                                val url = state.fetchUrl
+                                val fingerprint = state.receivedRepo.fingerprint?.take(16) ?: "无指纹"
+                                tvStatus.text = """
+                                    仓库预览就绪：
+                                    名称：$repoName
+                                    应用数量：$appCount
+                                    地址：$url
+                                    指纹：$fingerprint...
+                                    
+                                    确认无误后点击下方按钮添加
+                                """.trimIndent()
                                 tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
-
-                                // 自动调用添加（相当于原版点击“添加仓库”按钮）
-                                repoManager.addFetchedRepository()
-                                // 注意：添加后状态会很快变为 Adding / Added，不需要额外处理
                             }
                         }
 
                         is Adding -> {
                             progress.visibility = View.VISIBLE
+                            btnConfirmAdd.visibility = View.GONE
                             tvStatus.text = "正在添加仓库到客户端..."
                             tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
                         }
 
                         is Added -> {
                             progress.visibility = View.GONE
-                            // update newly added repo
+                            btnConfirmAdd.visibility = View.GONE
                             RepoUpdateWorker.updateNow(applicationContext, state.repo.repoId)
-                            // 跳转到应用列表（带新仓库 ID）
-                            val i = Intent(this@AddRepoActivity, AppListActivity::class.java).apply {
+                            val intent = Intent(this@AddRepoActivity, AppListActivity::class.java).apply {
                                 putExtra(EXTRA_REPO_ID, state.repo.repoId)
                             }
-                            startActivity(i)
+                            startActivity(intent)
                             finish()
                         }
 
                         is AddRepoError -> {
                             progress.visibility = View.GONE
-                            val errMsg = state.toString()
-                            tvStatus.text = "添加失败：$errMsg"
+                            btnConfirmAdd.visibility = View.GONE
+                            val errMsg = state.cause?.message ?: state.toString() ?: "未知错误"
+                            tvStatus.text = "添加失败：$errMsg\n请检查地址、指纹或网络"
                             tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, R.color.error_red))
                         }
 
                         else -> {
                             progress.visibility = View.GONE
                             tvStatus.text = "未知状态：${state.javaClass.simpleName}"
-                            Log.w("AddRepoDebug", "未处理的 AddRepoState: $state")
+                            Log.w("AddRepoDebug", "未处理状态: $state")
                         }
                     }
                 }
             }
         }
-        // Fetch 按钮点击
+// 获取按钮
         btnFetch.setOnClickListener {
             val url = etUrl.text.toString().trim()
-            if (url.isNotEmpty()) {
-                onFetchRepo(url)
-            } else {
+            if (url.isEmpty()) {
                 Toast.makeText(this, "请输入仓库地址", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            onFetchRepo(url)
+        }
+
+        // 确认添加按钮（手动触发添加）
+        btnConfirmAdd.setOnClickListener {
+            try {
+                repoManager.addFetchedRepository()
+            } catch (e: Exception) {
+                tvStatus.text = "添加失败：${e.message ?: "状态异常，请重试"}"
+                Log.e("AddRepo", "手动添加异常", e)
             }
         }
 
-        // 处理外部 Intent（保持不变）
+// 外部 Intent 处理
         addOnNewIntentListener { intent ->
             when (intent.action) {
                 Intent.ACTION_VIEW -> intent.dataString?.let { onFetchRepo(it) }
                 Intent.ACTION_SEND -> intent.getStringExtra(EXTRA_TEXT)?.let { fetchIfRepoUri(it) }
                 else -> {}
             }
-        }
 
         intent?.let {
             onNewIntent(it)
@@ -167,14 +190,16 @@ class AddRepoActivity : AppCompatActivity() {
     }
 
     private fun onFetchRepo(uriStr: String) {
+        progress.visibility = View.VISIBLE
+        tvStatus.text = "正在解析地址并开始获取..."
+        btnConfirmAdd.visibility = View.GONE
+
         val uri = Uri.parse(uriStr.trim())
         if (repoManager.isSwapUri(uri)) {
-            val i = Intent(this, SwapService::class.java).apply {
-                data = uri
-            }
-            ContextCompat.startForegroundService(this, i)
+            val swapIntent = Intent(this, SwapService::class.java).apply { data = uri }
+            ContextCompat.startForegroundService(this, swapIntent)
         } else {
-            repoManager.abortAddingRepository()
+            repoManager.abortAddingRepository()  // 清空旧状态，非常重要！
             repoManager.fetchRepositoryPreview(uri.toString(), proxy = NetCipher.getProxy())
         }
     }
