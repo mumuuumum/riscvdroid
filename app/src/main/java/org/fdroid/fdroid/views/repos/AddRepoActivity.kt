@@ -69,35 +69,61 @@ class AddRepoActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 repoManager.addRepoState.collect { state ->
+                    Log.d("AddRepoDebug", "State: ${state.javaClass.simpleName} - $state")  // 保持调试日志
+
                     when (state) {
-                        is Adding -> {
-                            progress.visibility = View.VISIBLE
-                            tvStatus.text = "正在获取仓库信息..."
+                        is None -> {
+                            progress.visibility = View.GONE
+                            tvStatus.text = "请输入仓库地址并点击获取"
                             tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
                         }
+
+                        is Fetching -> {
+                            progress.visibility = View.VISIBLE
+                            if (state.receivedRepo == null) {
+                                // 还在下载/解析索引
+                                tvStatus.text = "正在下载仓库索引..."
+                                tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
+                            } else {
+                                // 已获取到仓库预览 → 自动添加（核心改动！）
+                                tvStatus.text = "仓库信息已获取，正在自动添加..."
+                                tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
+
+                                // 自动调用添加（相当于原版点击“添加仓库”按钮）
+                                repoManager.addFetchedRepository()
+                                // 注意：添加后状态会很快变为 Adding / Added，不需要额外处理
+                            }
+                        }
+
+                        is Adding -> {
+                            progress.visibility = View.VISIBLE
+                            tvStatus.text = "正在添加仓库到客户端..."
+                            tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
+                        }
+
                         is Added -> {
                             progress.visibility = View.GONE
                             // update newly added repo
                             RepoUpdateWorker.updateNow(applicationContext, state.repo.repoId)
-                            // 跳转并关闭
+                            // 跳转到应用列表（带新仓库 ID）
                             val i = Intent(this@AddRepoActivity, AppListActivity::class.java).apply {
                                 putExtra(EXTRA_REPO_ID, state.repo.repoId)
                             }
                             startActivity(i)
                             finish()
                         }
+
                         is AddRepoError -> {
                             progress.visibility = View.GONE
-                            val errorMessage = when {
-                                state is Throwable -> state.message
-                                else -> state.toString()  // 最保险，显示类名 + 内容
-                            } ?: "未知错误"
-                            tvStatus.text = "添加失败：$errorMessage"
+                            val errMsg = state.cause?.message ?: state.toString() ?: "未知错误"
+                            tvStatus.text = "添加失败：$errMsg"
                             tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, R.color.error_red))
                         }
+
                         else -> {
                             progress.visibility = View.GONE
-                            tvStatus.text = ""
+                            tvStatus.text = "未知状态：${state.javaClass.simpleName}"
+                            Log.w("AddRepoDebug", "未处理的 AddRepoState: $state")
                         }
                     }
                 }
