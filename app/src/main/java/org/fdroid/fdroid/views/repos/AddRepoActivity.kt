@@ -85,7 +85,7 @@ class AddRepoActivity : AppCompatActivity() {
                             progress.visibility = View.VISIBLE
                             if (state.receivedRepo == null) {
                                 // 对应 RepoProgressScreen
-                                tvStatus.text = "正在获取仓库信息...\n已解析 ${state.apps} 个应用"
+                                tvStatus.text = "正在获取仓库信息..."
                                 tvStatus.setTextColor(ContextCompat.getColor(this@AddRepoActivity, android.R.color.black))
                             } else {
                                 // 对应 RepoPreviewScreen：显示预览，按钮可见

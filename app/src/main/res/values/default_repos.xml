@@ -2,6 +2,7 @@
 
     <!-- Repositories at the top have a higher priority than those at the bottom -->
     <string-array name="default_repos">
+
         <!-- IzzyOnDroid - 放到最前面作为默认仓库 -->
         <!-- name -->
         <item>IzzyOnDroid</item>
@@ -14,7 +15,7 @@
         <!-- enabled -->
         <item>1</item>
         <!-- push requests -->
-        <item>ignore</item>
+        <item>enabled</item>
         <!-- pubkey（指纹） -->
         <item>3BF0D6ABFEAE2F401707B6D966BE743BF0EEE49C2561B9BA39073711F628937A</item>
 
